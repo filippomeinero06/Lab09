@@ -39,7 +39,7 @@ class View:
             menu_height=150,
             width=200,
             hint_text="Selezionare un parco",
-            on_select=self.controller.on_parco_change
+            on_change=self.controller.on_parco_change
         )
         self.controller.popola_dropdown_parco()
 
@@ -52,7 +52,7 @@ class View:
                                            prefix=ft.Text("€ "),
                                            on_change=self.controller.check_budget)
 
-        pulsante_genera_pacchetto = ft.Button("Genera Pacchetto", on_click=self.controller.genera_pacchetto)
+        pulsante_genera_pacchetto = ft.ElevatedButton("Genera Pacchetto", on_click=self.controller.genera_pacchetto)
 
         # Menu interagibile
         self.menu = ft.Column(controls=[self.dd_parco,
