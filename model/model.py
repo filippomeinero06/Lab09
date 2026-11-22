@@ -10,7 +10,6 @@ class Model:
         self._pacchetto_ottimo = []
         self._valore_ottimo: int = -1
         self._costo = 0
-        self.num_giorni = 0
 
         # Caricamento
         self.load_escursioni()
@@ -39,7 +38,7 @@ class Model:
         """
         relazioni = EscursioneDAO.get_escursioni_punti_interesse()
 
-        for r in relazioni:     # relazioni è un dizionario di liste [{"id_escur": 1, "id_p_int": 3}, {...}]
+        for r in relazioni:     # relazioni è una lista di dizionari [{"id_escur": 1, "id_p_int": 3}, {...}]
             id_escurione = r["id_escursione"]
             id_punto_interesse = r["id_punto_interesse"]
 
@@ -67,15 +66,62 @@ class Model:
         self._pacchetto_ottimo = []
         self._costo = 0
         self._valore_ottimo = -1
-        self.num_giorni = 0
 
+        self._ricorsione(0, [], 0, self._costo, 0, set(), id_parco, max_giorni, max_budget)
 
-
+        if self._valore_ottimo == -1:
+            return [], 0, 0
 
         return self._pacchetto_ottimo, self._costo, self._valore_ottimo
 
-    def _ricorsione(self, start_index: int, pacchetto_parziale: list, durata_corrente: int, costo_corrente: float, valore_corrente: int, punti_usati: set):
+    def _ricorsione(self, start_index: int, pacchetto_parziale: list, durata_corrente: int, costo_corrente: float, valore_corrente: int, punti_usati: set, id_parco, max_giorni, max_budget):
         """ Algoritmo di ricorsione che deve trovare il pacchetto che massimizza il voto complessivo dei visitatori"""
 
-        if self.num_giorni >= max_giorni or self.costo >= max_budget:
-            pass
+        if self.escursione_rispetta_limiti(durata_corrente, costo_corrente, max_giorni, max_budget):
+            if self._valore_ottimo == -1 or valore_corrente > self._valore_ottimo:
+                self._pacchetto_ottimo = pacchetto_parziale.copy()
+                self._valore_ottimo = valore_corrente
+            return
+        else:
+            for _, escursione in self.escursioni_map.items():
+                somma_voti = 0
+                if escursione.id_parco == id_parco:
+                    for punto in escursione.punti_interesse:
+                        if punto not in punti_usati:
+                            somma_voti += self.punti_interesse_map[punto].voto_visitatori
+                            punti_usati.add(punto)
+
+                    if valore_corrente + somma_voti > self._valore_ottimo and self.escursione_valida(pacchetto_parziale, escursione):
+                        valore_corrente += somma_voti
+                        pacchetto_parziale.append(escursione.id)
+                        self._ricorsione(start_index, pacchetto_parziale, durata_corrente, costo_corrente, valore_corrente, punti_usati, id_parco, max_giorni, max_budget)
+                        punti_usati.clear()
+                        pacchetto_parziale.pop()
+
+    @staticmethod
+    def escursione_valida(pacchetto_parziale, escursione):
+        # 1) Le escursioni incluse nel pacchetto devono essere tutte diverse tra loro.
+        for esc in pacchetto_parziale:
+            if esc == escursione.id:
+                return False
+        return True
+
+    @staticmethod
+    def escursione_rispetta_limiti(durata_corrente, costo_corrente, max_giorni, max_budget):
+        if max_giorni is not None and max_budget is not None and durata_corrente >= max_giorni or costo_corrente >= max_budget:
+            return False
+        elif max_giorni is None and max_budget is not None and costo_corrente >= max_budget:
+            return False
+        elif max_giorni is not None and max_budget is None and durata_corrente >= max_giorni:
+            return False
+        else:
+            return True
+
+
+
+
+
+
+if __name__ == '__main__':
+
+    m = Model()
