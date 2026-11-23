@@ -84,7 +84,7 @@ class View:
             ft.Container(
                 content=self.lista_visualizzazione,
                 height=250,
-                border=ft.Border.all(1, ft.Colors.BLACK),
+                border=ft.border.all(1, ft.Colors.BLACK),
                 padding=10,
             )
         )
