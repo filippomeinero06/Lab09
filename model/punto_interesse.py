@@ -7,7 +7,8 @@ class PuntoInteresse:
     voto_visitatori: int
 
     # RELAZIONE (N:N)
-    escursioni: set = field(default_factory=set)
+    escursioni: set = field(default_factory=set)    # Vuol dire che ogni oggetto PuntoInteresse avrà un suo set di oggetti Escursione
+    # Se non avessi messo field(default_factory=set) avrei avuto un set in comune per tutti i punti di interesse (idem per escursione.py)
 
     def __eq__(self, other):
         return isinstance(other, PuntoInteresse) and self.id == other.id
